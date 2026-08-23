@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #0B0D11;
+    color: #F4F4F6;
+    overflow-x: hidden;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Main Editorial Headlines */
+  h1, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Section Headings & Titles */
+  h2, h3, h4, .font-syne, .font-heading {
+    font-family: var(--font-heading);
+    letter-spacing: -0.015em;
+  }
+
+  /* Natural Human Body Sans */
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+
+  /* Humanized Metadata, Badges, Specs & Numbers */
+  .font-mono {
+    font-family: var(--font-mono);
+    letter-spacing: 0.015em;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0D11;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A2F3D;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #E2F163;
+}
+
+/* Glassmorphism & Custom Border Utilities */
+.glass-panel {
+  background: rgba(18, 22, 31, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-amber {
+  background: rgba(226, 241, 99, 0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 241, 99, 0.25);
+}
+
+.border-razor {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.border-razor-hover:hover {
+  border-color: rgba(226, 241, 99, 0.4);
+}
+
+/* Shimmer & Glow Effects */
+.glow-amber {
+  box-shadow: 0 0 25px rgba(226, 241, 99, 0.15);
+}
+
+.glow-orange {
+  box-shadow: 0 0 25px rgba(255, 107, 0, 0.2);
+}
+
+/* Animations */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.96); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
