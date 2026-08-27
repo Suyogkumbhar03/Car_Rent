@@ -11,17 +11,25 @@ import {
   Users, 
   Flame, 
   Info,
-  CheckCircle2
+  CheckCircle2,
+  Scale
 } from 'lucide-react';
 
 export const CarCard = ({ car, viewMode = 'grid' }) => {
   const { 
     formatPrice, 
     setSelectedCarForModal, 
-    setSelectedCarForDetail 
+    setSelectedCarForDetail,
+    comparedCarIds,
+    toggleCompareCar,
+    isAdmin,
+    setIsAdminOpen
   } = useRental();
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const carId = car.id || car._id;
+  const isCompared = comparedCarIds.includes(carId);
 
   const nextImage = (e) => {
     e.stopPropagation();
@@ -35,13 +43,13 @@ export const CarCard = ({ car, viewMode = 'grid' }) => {
 
   return (
     <div 
-      className={`glass-panel rounded-3xl overflow-hidden group transition-all duration-300 border-white/10 hover:border-[#E2F163]/40 flex flex-col justify-between ${
+      className={`glass-panel rounded-3xl overflow-hidden group transition-all duration-300 border-slate-200 hover:border-amber-400/70 hover:shadow-xl flex flex-col justify-between ${
         viewMode === 'list' ? 'md:flex-row' : ''
       }`}
     >
       
-      {/* Top Image Carousel Container */}
-      <div className={`relative overflow-hidden bg-neutral-900 ${viewMode === 'list' ? 'md:w-5/12 h-64 md:h-auto' : 'h-64'}`}>
+      {/* Top Image Container */}
+      <div className={`relative overflow-hidden bg-slate-100 ${viewMode === 'list' ? 'md:w-5/12 h-64 md:h-auto' : 'h-64'}`}>
         
         {/* Main Image */}
         <img 
@@ -51,28 +59,32 @@ export const CarCard = ({ car, viewMode = 'grid' }) => {
         />
 
         {/* Dark Vignette Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D11]/90 via-transparent to-[#0B0D11]/30 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-black/20 pointer-events-none" />
 
-        {/* Availability Badge */}
-        <div className="absolute top-4 left-4 z-10">
+        {/* Top Controls: Availability + Compare Checkbox */}
+        <div className="absolute top-4 inset-x-4 z-10 flex items-center justify-between">
+          
           <span className={`px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-bold border flex items-center gap-1.5 backdrop-blur-md ${
             car.isAvailable 
-              ? 'bg-[#E2F163]/20 border-[#E2F163]/50 text-[#E2F163]' 
-              : 'bg-red-500/20 border-red-500/50 text-red-400'
+              ? 'bg-emerald-500/20 border-emerald-600/50 text-emerald-800 bg-white/80' 
+              : 'bg-red-500/20 border-red-500/50 text-red-700 bg-white/80'
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${car.isAvailable ? 'bg-[#E2F163] animate-pulse' : 'bg-red-400'}`} />
-            {car.availabilityNotice || (car.isAvailable ? 'Available' : 'Reserved')}
+            <span className={`w-1.5 h-1.5 rounded-full ${car.isAvailable ? 'bg-emerald-600 animate-pulse' : 'bg-red-500'}`} />
+            {car.availabilityNotice || (car.isAvailable ? 'Available' : 'Booked')}
           </span>
-        </div>
 
-        {/* Category & Powertrain Badges */}
-        <div className="absolute top-4 right-4 z-10 flex gap-1.5">
-          <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-mono text-slate-300">
-            {car.powertrain}
-          </span>
-          <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-mono text-slate-300">
-            {car.category}
-          </span>
+          {/* Compare Checkbox Trigger */}
+          <button
+            onClick={() => toggleCompareCar(carId)}
+            className={`px-2.5 py-1 rounded-full text-[10px] font-mono border backdrop-blur-md flex items-center gap-1.5 transition-all ${
+              isCompared 
+                ? 'bg-amber-600 text-white border-amber-600 font-bold shadow-sm'
+                : 'bg-white/80 text-slate-800 border-slate-200 hover:border-amber-400'
+            }`}
+          >
+            <Scale className="w-3 h-3 text-amber-600" />
+            <span>{isCompared ? 'Added' : 'Compare'}</span>
+          </button>
         </div>
 
         {/* Carousel Controls */}
@@ -80,13 +92,13 @@ export const CarCard = ({ car, viewMode = 'grid' }) => {
           <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button 
               onClick={prevImage}
-              className="w-8 h-8 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-[#E2F163] hover:text-black transition-colors"
+              className="w-8 h-8 rounded-full bg-white/80 text-slate-900 flex items-center justify-center hover:bg-amber-600 hover:text-white transition-colors shadow-md"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button 
               onClick={nextImage}
-              className="w-8 h-8 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-[#E2F163] hover:text-black transition-colors"
+              className="w-8 h-8 rounded-full bg-white/80 text-slate-900 flex items-center justify-center hover:bg-amber-600 hover:text-white transition-colors shadow-md"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -100,7 +112,7 @@ export const CarCard = ({ car, viewMode = 'grid' }) => {
               <span 
                 key={idx}
                 className={`h-1 rounded-full transition-all ${
-                  activeImageIndex === idx ? 'w-5 bg-[#E2F163]' : 'w-1.5 bg-white/40'
+                  activeImageIndex === idx ? 'w-5 bg-amber-500' : 'w-1.5 bg-white/60'
                 }`}
               />
             ))}
@@ -117,61 +129,60 @@ export const CarCard = ({ car, viewMode = 'grid' }) => {
           {/* Header & Rating */}
           <div className="flex items-start justify-between gap-2">
             <div>
-              <span className="text-[10px] font-mono text-slate-400 tracking-widest uppercase block">
-                {car.brand} • {car.year}
+              <span className="text-[10px] font-mono text-slate-500 tracking-widest uppercase block">
+                {car.brand} • {car.year} • {car.powertrain}
               </span>
-              <h3 className="font-syne text-xl font-bold text-white group-hover:text-[#E2F163] transition-colors">
+              <h3 className="font-syne text-xl font-bold text-slate-900 group-hover:text-amber-700 transition-colors">
                 {car.title}
               </h3>
             </div>
             
-            <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-xs font-mono">
-              <Star className="w-3.5 h-3.5 fill-[#E2F163] text-[#E2F163]" />
-              <span className="text-white font-bold">{car.rating}</span>
-              <span className="text-slate-500 text-[10px]">({car.reviewsCount})</span>
+            <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full text-xs font-mono">
+              <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+              <span className="text-slate-900 font-bold">{car.rating}</span>
             </div>
           </div>
 
           {/* Description snippet */}
-          <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed font-sans">
+          <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed font-sans">
             {car.description}
           </p>
 
-          {/* Spec Strip with Glyph Icons */}
-          <div className="grid grid-cols-4 gap-2 pt-2 border-t border-white/10 text-[11px] font-mono">
-            <div className="bg-white/5 p-2 rounded-xl text-center border border-white/5">
-              <span className="block text-[9px] text-slate-400 uppercase">Top Speed</span>
-              <span className="text-white font-bold">{car.specs.speed}</span>
+          {/* Spec Strip */}
+          <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-[11px] font-mono">
+            <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-200/60">
+              <span className="block text-[9px] text-slate-500 uppercase">Max Speed</span>
+              <span className="text-slate-900 font-bold">{car.specs.speed}</span>
             </div>
 
-            <div className="bg-white/5 p-2 rounded-xl text-center border border-white/5">
-              <span className="block text-[9px] text-slate-400 uppercase">0-100 km/h</span>
-              <span className="text-[#E2F163] font-bold">{car.specs.acceleration}</span>
+            <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-200/60">
+              <span className="block text-[9px] text-slate-500 uppercase">0-100 km/h</span>
+              <span className="text-amber-700 font-bold">{car.specs.acceleration}</span>
             </div>
 
-            <div className="bg-white/5 p-2 rounded-xl text-center border border-white/5">
-              <span className="block text-[9px] text-slate-400 uppercase">Output</span>
-              <span className="text-white font-bold">{car.specs.horsepower}</span>
+            <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-200/60">
+              <span className="block text-[9px] text-slate-500 uppercase">Engine</span>
+              <span className="text-slate-900 font-bold">{car.specs.horsepower}</span>
             </div>
 
-            <div className="bg-white/5 p-2 rounded-xl text-center border border-white/5">
-              <span className="block text-[9px] text-slate-400 uppercase">Gearbox</span>
-              <span className="text-white font-bold truncate block">{car.specs.transmission}</span>
+            <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-200/60">
+              <span className="block text-[9px] text-slate-500 uppercase">Gear</span>
+              <span className="text-slate-900 font-bold truncate block">{car.specs.transmission}</span>
             </div>
           </div>
 
         </div>
 
         {/* Pricing & Reservation Actions */}
-        <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-4">
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
           
           <div>
-            <span className="text-[10px] font-mono text-slate-400 uppercase block">Daily Rate</span>
+            <span className="text-[10px] font-mono text-slate-500 uppercase block">Per Day Rate</span>
             <div className="flex items-baseline gap-1">
-              <span className="font-mono text-xl font-extrabold text-white">
+              <span className="font-mono text-xl font-extrabold text-amber-600">
                 {formatPrice(car.pricePerDay)}
               </span>
-              <span className="text-xs text-slate-400 font-normal">/ 24 hrs</span>
+              <span className="text-xs text-slate-500 font-normal">/ day</span>
             </div>
           </div>
 
@@ -179,24 +190,26 @@ export const CarCard = ({ car, viewMode = 'grid' }) => {
             {/* Full Spec Modal Button */}
             <button
               onClick={() => setSelectedCarForDetail(car)}
-              className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-colors"
-              title="View Maintenance & Telemetry"
+              className="p-2.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
+              title="View Car Details"
             >
               <Info className="w-4 h-4" />
             </button>
 
-            {/* Quick Reserve CTA */}
-            <button
-              onClick={() => setSelectedCarForModal(car)}
-              disabled={!car.isAvailable}
-              className={`px-5 py-2.5 rounded-full font-syne font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
-                car.isAvailable
-                  ? 'bg-[#E2F163] text-black hover:bg-[#d4e450] hover:shadow-[0_0_20px_rgba(226,241,99,0.4)]'
-                  : 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/10'
-              }`}
-            >
-              <span>{car.isAvailable ? 'Quick Reserve' : 'Reserved'}</span>
-            </button>
+            {/* For Customers: Show Book Now. For Admins: No booking button on card */}
+            {!isAdmin && (
+              <button
+                onClick={() => setSelectedCarForModal(car)}
+                disabled={!car.isAvailable}
+                className={`px-5 py-2.5 rounded-full font-syne font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                  car.isAvailable
+                    ? 'bg-amber-600 text-white hover:bg-amber-700'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
+                }`}
+              >
+                <span>{car.isAvailable ? 'Book Now' : 'Booked'}</span>
+              </button>
+            )}
           </div>
 
         </div>
@@ -206,3 +219,4 @@ export const CarCard = ({ car, viewMode = 'grid' }) => {
     </div>
   );
 };
+

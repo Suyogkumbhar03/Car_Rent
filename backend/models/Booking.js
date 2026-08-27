@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema({
+  userId: { type: String, default: null },
   carId: { type: String, required: true },
   carTitle: { type: String },
   customerName: { type: String, required: true },

@@ -10,8 +10,13 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0B0D11;
-    color: #F4F4F6;
+    background-color: #FAFAFD;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.07) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: #0F172A;
     overflow-x: hidden;
     letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
@@ -48,36 +53,37 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0D11;
+  background: #F1F5F9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2A2F3D;
+  background: #CBD5E1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #E2F163;
+  background: #D97706;
 }
 
 /* Glassmorphism & Custom Border Utilities */
 .glass-panel {
-  background: rgba(18, 22, 31, 0.65);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
 }
 
 .glass-panel-amber {
-  background: rgba(226, 241, 99, 0.04);
+  background: rgba(254, 243, 199, 0.5);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 241, 99, 0.25);
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .border-razor {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 .border-razor-hover:hover {
-  border-color: rgba(226, 241, 99, 0.4);
+  border-color: rgba(217, 119, 6, 0.4);
 }
 
 /* Shimmer & Glow Effects */

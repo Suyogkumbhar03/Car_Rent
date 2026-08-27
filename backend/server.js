@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const { connectDB } = require('./config/db');
 const carRoutes = require('./routes/carRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const authRoutes = require('./routes/authRoutes');
+const { seedDefaultAdmin } = require('./controllers/authController');
 
 dotenv.config();
 
@@ -11,7 +13,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Connect Database (with fallback)
-connectDB();
+connectDB().then(() => {
+  seedDefaultAdmin();
+});
 
 // Middleware
 app.use(cors({
@@ -30,6 +34,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/bookings', bookingRoutes);
 

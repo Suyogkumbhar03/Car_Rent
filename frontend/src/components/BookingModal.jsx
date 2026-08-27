@@ -10,16 +10,18 @@ export const BookingModal = () => {
     formatPrice, 
     handleCreateBooking, 
     quickSearchState,
-    currency
+    currency,
+    user,
+    isAdmin
   } = useRental();
 
   const [step, setStep] = useState(1);
 
   // Form State
   const [formData, setFormData] = useState({
-    customerName: '',
-    email: '',
-    phone: '',
+    customerName: user ? user.name : '',
+    email: user ? user.email : '',
+    phone: user ? (user.phone || '') : '',
     driverLicense: 'CH-LIC-9482',
     licenseFilePreview: null,
     startDate: quickSearchState.startDate || '2026-08-25',
@@ -30,12 +32,24 @@ export const BookingModal = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
 
+  // Auto pre-fill logged-in user info if available
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        customerName: prev.customerName || user.name,
+        email: prev.email || user.email,
+        phone: prev.phone || user.phone || ''
+      }));
+    }
+  }, [user]);
+
   // Add-ons list definition
   const addOnsList = [
-    { id: 'insurance', name: 'Full Coverage Insurance (Track & Road)', pricePerDay: 120, desc: 'Zero deductible for collision, glass, and carbon aero panels.' },
-    { id: 'concierge', name: 'Personal Concierge Delivery & Return', pricePerDay: 80, desc: 'Direct enclosed trailer drop-off to your chalet, hotel, or pit lane.' },
-    { id: 'driver', name: 'Additional Certified Driver', pricePerDay: 45, desc: 'Authorize an additional driver for high-speed mountain passes.' },
-    { id: 'telemetry', name: 'Race Telemetry & Lap Timer Pack', pricePerDay: 30, desc: 'GPS lap recording, tire pressure sensors, and video export.' }
+    { id: 'insurance', name: 'Full Car Insurance', pricePerDay: 500, desc: 'Complete insurance coverage with zero extra charge for accidental damage.' },
+    { id: 'concierge', name: 'Doorstep Car Delivery & Pickup', pricePerDay: 300, desc: 'We deliver the car directly to your home, hotel, or airport terminal.' },
+    { id: 'driver', name: 'Extra Driver Allowance', pricePerDay: 200, desc: 'Allow a second person to drive the car legally during your trip.' },
+    { id: 'telemetry', name: 'GPS Navigation System', pricePerDay: 150, desc: 'Pre-installed GPS navigation with live traffic guidance.' }
   ];
 
   // Reset modal state whenever a new car is selected
@@ -79,7 +93,7 @@ export const BookingModal = () => {
   const diffTime = Math.max(1000 * 60 * 60 * 24, end - start);
   const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
 
-  // Financial Calculations (USD Base)
+  // Financial Calculations
   const baseCarTotal = car.pricePerDay * days;
   
   const addOnsTotalPerDay = formData.selectedAddOns.reduce((sum, name) => {
@@ -89,8 +103,8 @@ export const BookingModal = () => {
 
   const addOnsTotal = addOnsTotalPerDay * days;
   const subtotal = baseCarTotal + addOnsTotal;
-  const taxAmount = subtotal * 0.08;
-  const depositAmount = 500;
+  const taxAmount = subtotal * 0.05;
+  const depositAmount = 2000;
   const grandTotal = subtotal + taxAmount;
 
   const toggleAddOn = (name) => {
@@ -115,7 +129,7 @@ export const BookingModal = () => {
 
   const handleSubmitBooking = async () => {
     if (!formData.customerName || !formData.email || !formData.phone) {
-      alert('Please fill in all driver details before confirming.');
+      alert('Please fill in your name, email, and phone number.');
       return;
     }
 
@@ -157,25 +171,25 @@ export const BookingModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-lg animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
       
       <div 
-        className="glass-panel w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl p-6 sm:p-8 space-y-6 border-white/10 relative shadow-2xl"
+        className="glass-panel w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl p-6 sm:p-8 space-y-6 border-slate-200 bg-white text-slate-900 relative shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
 
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            <span className="font-mono text-[10px] text-[#E2F163] uppercase tracking-widest block">
-              THREE-STEP EDITORIAL CHECKOUT
+            <span className="font-mono text-[10px] text-amber-700 uppercase tracking-widest block font-bold">
+              EASY 3-STEP BOOKING
             </span>
-            <h2 className="font-syne text-2xl font-bold text-white">{car.title}</h2>
+            <h2 className="font-syne text-2xl font-bold text-slate-900">{car.title}</h2>
           </div>
 
           <button 
             onClick={handleCloseModal}
-            className="p-2 rounded-full bg-white/10 text-white hover:bg-[#E2F163] hover:text-black transition-colors"
+            className="p-2 rounded-full bg-slate-100 text-slate-700 hover:bg-amber-600 hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -183,15 +197,25 @@ export const BookingModal = () => {
 
         {/* Step Indicator Bar */}
         {!confirmedBooking && (
-          <div className="grid grid-cols-3 gap-2 font-mono text-xs text-center border-b border-white/10 pb-4">
-            <div className={`py-2 rounded-xl transition-all ${step === 1 ? 'bg-[#E2F163] text-black font-bold' : 'bg-white/5 text-slate-400'}`}>
-              1. Add-ons & Specs
+          <div className="grid grid-cols-3 gap-2 font-mono text-xs text-center border-b border-slate-200 pb-4">
+            <div className={`py-2 rounded-xl transition-all ${step === 1 ? 'bg-amber-600 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-600'}`}>
+              1. Dates & Extras
             </div>
-            <div className={`py-2 rounded-xl transition-all ${step === 2 ? 'bg-[#E2F163] text-black font-bold' : 'bg-white/5 text-slate-400'}`}>
-              2. Driver & License
+            <div className={`py-2 rounded-xl transition-all ${step === 2 ? 'bg-amber-600 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-600'}`}>
+              2. Your Details
             </div>
-            <div className={`py-2 rounded-xl transition-all ${step === 3 ? 'bg-[#E2F163] text-black font-bold' : 'bg-white/5 text-slate-400'}`}>
+            <div className={`py-2 rounded-xl transition-all ${step === 3 ? 'bg-amber-600 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-600'}`}>
               3. Summary & Pay
+            </div>
+          </div>
+        )}
+
+        {/* Admin Role Notice Banner */}
+        {isAdmin && !confirmedBooking && (
+          <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-center justify-between text-xs font-mono text-amber-900">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
+              <span><strong>Admin Notice:</strong> You are logged in as Admin. Admins manage fleet & view sales.</span>
             </div>
           </div>
         )}
@@ -199,42 +223,42 @@ export const BookingModal = () => {
         {/* Confirmation Screen */}
         {confirmedBooking ? (
           <div className="py-8 text-center space-y-6 animate-in zoom-in-95">
-            <div className="w-16 h-16 rounded-full bg-[#E2F163] text-black flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(226,241,99,0.5)]">
+            <div className="w-16 h-16 rounded-full bg-amber-500 text-white flex items-center justify-center mx-auto shadow-md">
               <Check className="w-8 h-8 stroke-[3]" />
             </div>
 
             <div className="space-y-2">
-              <span className="font-mono text-xs text-[#E2F163] uppercase tracking-widest">
-                RESERVATION CONFIRMED
+              <span className="font-mono text-xs text-amber-700 uppercase tracking-widest font-bold">
+                BOOKING CONFIRMED!
               </span>
-              <h3 className="font-syne text-3xl font-extrabold text-white">
-                CODE: {confirmedBooking.bookingCode}
+              <h3 className="font-syne text-3xl font-extrabold text-slate-900">
+                BOOKING ID: {confirmedBooking.bookingCode}
               </h3>
-              <p className="text-slate-400 text-xs font-sans max-w-md mx-auto">
-                Thank you, {confirmedBooking.customerName}. Your {car.title} is locked for dispatch from {confirmedBooking.startDate} to {confirmedBooking.endDate}.
+              <p className="text-slate-600 text-xs font-sans max-w-md mx-auto">
+                Thank you, {confirmedBooking.customerName}! Your {car.title} is reserved for {confirmedBooking.startDate} to {confirmedBooking.endDate}.
               </p>
             </div>
 
-            <div className="bg-white/5 p-5 rounded-2xl border border-white/10 max-w-md mx-auto text-left font-mono text-xs space-y-2">
-              <div className="flex justify-between border-b border-white/10 pb-1.5">
-                <span className="text-slate-400">Total Duration:</span>
-                <span className="text-white font-bold">{confirmedBooking.days} Days</span>
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 max-w-md mx-auto text-left font-mono text-xs space-y-2">
+              <div className="flex justify-between border-b border-slate-200 pb-1.5">
+                <span className="text-slate-500">Total Duration:</span>
+                <span className="text-slate-900 font-bold">{confirmedBooking.days} Days</span>
               </div>
-              <div className="flex justify-between border-b border-white/10 pb-1.5">
-                <span className="text-slate-400">Total Charged:</span>
-                <span className="text-[#E2F163] font-bold">{formatPrice(confirmedBooking.totalPrice)}</span>
+              <div className="flex justify-between border-b border-slate-200 pb-1.5">
+                <span className="text-slate-500">Total Price:</span>
+                <span className="text-amber-700 font-bold">{formatPrice(confirmedBooking.totalPrice)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Security Deposit:</span>
-                <span className="text-white">{formatPrice(confirmedBooking.deposit)} (Refundable)</span>
+                <span className="text-slate-500">Security Deposit:</span>
+                <span className="text-slate-900">{formatPrice(confirmedBooking.deposit)} (Refundable)</span>
               </div>
             </div>
 
             <button
               onClick={handleCloseModal}
-              className="px-8 py-3 rounded-full bg-[#E2F163] text-black font-syne font-bold text-xs uppercase tracking-wider hover:bg-[#d4e450]"
+              className="px-8 py-3 rounded-full bg-amber-600 text-white font-syne font-bold text-xs uppercase tracking-wider hover:bg-amber-700 shadow-sm"
             >
-              Return to Catalog
+              Back to Cars
             </button>
           </div>
         ) : (
@@ -244,32 +268,32 @@ export const BookingModal = () => {
               <div className="space-y-6 animate-in fade-in">
                 
                 {/* Timeline pickers */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-slate-400 uppercase">Pick-Up Date</label>
+                    <label className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Pickup Date</label>
                     <input 
                       type="date"
                       value={formData.startDate}
                       onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                      className="w-full bg-[#0B0D11] border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#E2F163]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-amber-500"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-slate-400 uppercase">Return Date</label>
+                    <label className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Return Date</label>
                     <input 
                       type="date"
                       value={formData.endDate}
                       onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                      className="w-full bg-[#0B0D11] border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#E2F163]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-amber-500"
                     />
                   </div>
                 </div>
 
                 {/* Add-ons List */}
                 <div className="space-y-3">
-                  <h4 className="font-syne text-sm font-bold text-white uppercase tracking-wider">
-                    Select Luxury Add-ons & Coverage
+                  <h4 className="font-syne text-sm font-bold text-slate-900 uppercase tracking-wider">
+                    Optional Extra Features
                   </h4>
                   
                   <div className="space-y-2.5">
@@ -281,22 +305,22 @@ export const BookingModal = () => {
                           onClick={() => toggleAddOn(addon.name)}
                           className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                             isSelected 
-                              ? 'bg-[#E2F163]/10 border-[#E2F163] text-white' 
-                              : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20'
+                              ? 'bg-amber-50/80 border-amber-500 text-slate-900 shadow-sm' 
+                              : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                           }`}
                         >
                           <div className="space-y-1 pr-4">
                             <div className="flex items-center gap-2">
-                              <span className="font-syne text-sm font-bold text-white">{addon.name}</span>
+                              <span className="font-syne text-sm font-bold text-slate-900">{addon.name}</span>
                             </div>
-                            <p className="text-xs text-slate-400">{addon.desc}</p>
+                            <p className="text-xs text-slate-600">{addon.desc}</p>
                           </div>
 
                           <div className="text-right font-mono whitespace-nowrap">
-                            <span className="text-xs font-bold text-[#E2F163]">
+                            <span className="text-xs font-bold text-amber-700">
                               +{formatPrice(addon.pricePerDay)}
                             </span>
-                            <span className="text-[10px] text-slate-400 block">/day</span>
+                            <span className="text-[10px] text-slate-500 block">/day</span>
                           </div>
                         </div>
                       );
@@ -305,12 +329,12 @@ export const BookingModal = () => {
                 </div>
 
                 {/* Step 1 Footer Action */}
-                <div className="flex justify-end pt-4 border-t border-white/10">
+                <div className="flex justify-end pt-4 border-t border-slate-200">
                   <button
                     onClick={() => setStep(2)}
-                    className="px-7 py-3 rounded-full bg-[#E2F163] text-black font-syne font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-[#d4e450]"
+                    className="px-7 py-3 rounded-full bg-amber-600 text-white font-syne font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-amber-700 shadow-sm"
                   >
-                    <span>Next: Driver Details</span>
+                    <span>Next: Your Information</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -324,37 +348,37 @@ export const BookingModal = () => {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono text-slate-400 uppercase">Full Driver Name *</label>
+                    <label className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Your Full Name *</label>
                     <input 
                       type="text" 
-                      placeholder="e.g. Alexander Vance"
+                      placeholder="e.g. Rahul Sharma"
                       value={formData.customerName}
                       onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      className="w-full bg-[#0B0D11] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#E2F163]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500"
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono text-slate-400 uppercase">Email Address *</label>
+                    <label className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Email Address *</label>
                     <input 
                       type="email" 
-                      placeholder="alexander@domain.com"
+                      placeholder="rahul@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-[#0B0D11] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#E2F163]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500"
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="text-[10px] font-mono text-slate-400 uppercase">Mobile Phone (Concierge Updates) *</label>
+                    <label className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Mobile Phone Number *</label>
                     <input 
                       type="tel" 
-                      placeholder="+41 79 000 0000"
+                      placeholder="+91 98765 43210"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full bg-[#0B0D11] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#E2F163]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500"
                       required
                     />
                   </div>
@@ -362,11 +386,11 @@ export const BookingModal = () => {
 
                 {/* Driver's License Document Preview */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-slate-400 uppercase block">
-                    Driver's License / ID Document Verification
+                  <label className="text-[10px] font-mono text-slate-500 uppercase block font-semibold">
+                    Upload Driving License / ID Photo (Optional)
                   </label>
                   
-                  <div className="border-2 border-dashed border-white/20 rounded-2xl p-6 text-center bg-white/5 hover:border-[#E2F163]/50 transition-colors relative">
+                  <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center bg-slate-50 hover:border-amber-500 transition-colors relative">
                     <input 
                       type="file" 
                       accept="image/*"
@@ -379,25 +403,25 @@ export const BookingModal = () => {
                         <img 
                           src={formData.licenseFilePreview} 
                           alt="License Preview" 
-                          className="h-28 mx-auto rounded-lg object-cover border border-white/20"
+                          className="h-28 mx-auto rounded-lg object-cover border border-slate-200"
                         />
-                        <p className="text-xs font-mono text-[#E2F163] font-bold">Document Uploaded Successfully</p>
+                        <p className="text-xs font-mono text-amber-700 font-bold">Photo Uploaded</p>
                       </div>
                     ) : (
                       <div className="space-y-2 pointer-events-none">
-                        <Upload className="w-8 h-8 text-[#E2F163] mx-auto" />
-                        <p className="text-xs font-mono text-slate-300 font-bold">Drag & Drop Driver's License Scan or Click to Browse</p>
-                        <p className="text-[10px] text-slate-500 font-mono">PNG, JPG, or PDF (Max 10MB)</p>
+                        <Upload className="w-8 h-8 text-amber-600 mx-auto" />
+                        <p className="text-xs font-mono text-slate-700 font-bold">Click here to upload driving license image</p>
+                        <p className="text-[10px] text-slate-500 font-mono">JPG, PNG, or PDF</p>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Step 2 Actions */}
-                <div className="flex justify-between pt-4 border-t border-white/10">
+                <div className="flex justify-between pt-4 border-t border-slate-200">
                   <button
                     onClick={() => setStep(1)}
-                    className="px-6 py-2.5 rounded-full bg-white/5 text-slate-300 font-mono text-xs uppercase flex items-center gap-1.5 hover:bg-white/10"
+                    className="px-6 py-2.5 rounded-full bg-slate-100 text-slate-700 font-mono text-xs uppercase flex items-center gap-1.5 hover:bg-slate-200"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Back</span>
@@ -406,14 +430,14 @@ export const BookingModal = () => {
                   <button
                     onClick={() => {
                       if (!formData.customerName || !formData.email || !formData.phone) {
-                        alert('Please complete Driver Name, Email, and Phone.');
+                        alert('Please fill in your Name, Email, and Phone Number.');
                         return;
                       }
                       setStep(3);
                     }}
-                    className="px-7 py-3 rounded-full bg-[#E2F163] text-black font-syne font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-[#d4e450]"
+                    className="px-7 py-3 rounded-full bg-amber-600 text-white font-syne font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-amber-700 shadow-sm"
                   >
-                    <span>Next: Cost Breakdown</span>
+                    <span>Next: Summary & Price</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -426,53 +450,53 @@ export const BookingModal = () => {
               <div className="space-y-6 animate-in fade-in">
                 
                 {/* Itemized Receipt */}
-                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-3 font-mono text-xs">
-                  <h4 className="font-syne text-sm font-bold text-white border-b border-white/10 pb-2">
-                    Itemized Rental Breakdown ({days} Days)
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 font-mono text-xs">
+                  <h4 className="font-syne text-sm font-bold text-slate-900 border-b border-slate-200 pb-2">
+                    Price Breakdown ({days} Days)
                   </h4>
 
-                  <div className="flex justify-between text-slate-300">
-                    <span>Base Vehicle Rate ({formatPrice(car.pricePerDay)} x {days} days)</span>
-                    <span className="font-bold text-white">{formatPrice(baseCarTotal)}</span>
+                  <div className="flex justify-between text-slate-700">
+                    <span>Car Daily Rate ({formatPrice(car.pricePerDay)} x {days} days)</span>
+                    <span className="font-bold text-slate-900">{formatPrice(baseCarTotal)}</span>
                   </div>
 
                   {formData.selectedAddOns.map((name, i) => {
                     const addon = addOnsList.find(a => a.name === name);
                     const cost = (addon ? addon.pricePerDay : 0) * days;
                     return (
-                      <div key={i} className="flex justify-between text-slate-400 pl-3 border-l-2 border-[#E2F163]/50">
+                      <div key={i} className="flex justify-between text-slate-600 pl-3 border-l-2 border-amber-500">
                         <span>+ {name}</span>
-                        <span className="text-white">{formatPrice(cost)}</span>
+                        <span className="text-slate-900 font-semibold">{formatPrice(cost)}</span>
                       </div>
                     );
                   })}
 
-                  <div className="flex justify-between text-slate-400 pt-2 border-t border-white/10">
+                  <div className="flex justify-between text-slate-600 pt-2 border-t border-slate-200">
                     <span>Subtotal</span>
                     <span>{formatPrice(subtotal)}</span>
                   </div>
 
-                  <div className="flex justify-between text-slate-400">
-                    <span>Estimated Tax (8%)</span>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Tax (5%)</span>
                     <span>{formatPrice(taxAmount)}</span>
                   </div>
 
-                  <div className="flex justify-between text-slate-400">
-                    <span>Security Deposit (Refundable)</span>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Refundable Security Deposit</span>
                     <span>{formatPrice(depositAmount)}</span>
                   </div>
 
-                  <div className="flex justify-between text-base font-bold pt-3 border-t border-white/10 text-white">
-                    <span className="font-syne">Total Payment Due</span>
-                    <span className="text-[#E2F163] text-xl">{formatPrice(grandTotal)}</span>
+                  <div className="flex justify-between text-base font-bold pt-3 border-t border-slate-200 text-slate-900">
+                    <span className="font-syne">Total Amount to Pay</span>
+                    <span className="text-amber-700 text-xl">{formatPrice(grandTotal)}</span>
                   </div>
                 </div>
 
                 {/* Step 3 Actions */}
-                <div className="flex justify-between pt-4 border-t border-white/10">
+                <div className="flex justify-between pt-4 border-t border-slate-200">
                   <button
                     onClick={() => setStep(2)}
-                    className="px-6 py-2.5 rounded-full bg-white/5 text-slate-300 font-mono text-xs uppercase flex items-center gap-1.5 hover:bg-white/10"
+                    className="px-6 py-2.5 rounded-full bg-slate-100 text-slate-700 font-mono text-xs uppercase flex items-center gap-1.5 hover:bg-slate-200"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Back</span>
@@ -481,14 +505,14 @@ export const BookingModal = () => {
                   <button
                     onClick={handleSubmitBooking}
                     disabled={isSubmitting}
-                    className="px-8 py-3.5 rounded-full bg-[#E2F163] text-black font-syne font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-[#d4e450] shadow-[0_0_25px_rgba(226,241,99,0.4)] cursor-pointer"
+                    className="px-8 py-3.5 rounded-full bg-amber-600 text-white font-syne font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-amber-700 cursor-pointer shadow-md"
                   >
                     {isSubmitting ? (
-                      <span>Processing Telemetry Lock...</span>
+                      <span>Saving your booking...</span>
                     ) : (
                       <>
                         <CreditCard className="w-4 h-4" />
-                        <span>Confirm & Lock Reservation ({formatPrice(grandTotal)})</span>
+                        <span>Confirm & Book Now ({formatPrice(grandTotal)})</span>
                       </>
                     )}
                   </button>

@@ -1,4 +1,46 @@
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+export const loginAPI = async (email, password) => {
+  try {
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('[API Client Error]: Auth login failed', err);
+    return { success: false, message: 'Server connection failed' };
+  }
+};
+
+export const registerAPI = async (name, email, phone, password) => {
+  try {
+    const response = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone, password })
+    });
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('[API Client Error]: Auth register failed', err);
+    return { success: false, message: 'Server connection failed' };
+  }
+};
+
+export const getMeAPI = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    return { success: false };
+  }
+};
 
 export const fetchCars = async (filters = {}) => {
   try {
@@ -16,7 +58,7 @@ export const fetchCars = async (filters = {}) => {
     return data.data || [];
   } catch (err) {
     console.warn('[API Client Warning]: Backend server connection offline/loading, using fallback mode.', err);
-    return null; // context will fallback cleanly
+    return null;
   }
 };
 

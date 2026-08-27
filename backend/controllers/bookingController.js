@@ -40,7 +40,8 @@ const createBooking = async (req, res) => {
       days,
       totalPrice,
       deposit,
-      addOns
+      addOns,
+      userId
     } = req.body;
 
     if (!customerName || !email || !phone || !startDate || !endDate || !carId) {
@@ -50,6 +51,7 @@ const createBooking = async (req, res) => {
     const bookingCode = `RES-${Math.floor(1000 + Math.random() * 9000)}-${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`;
 
     const newBookingData = {
+      userId: userId || null,
       carId,
       carTitle: carTitle || 'Luxury Performance Vehicle',
       customerName,
