@@ -3,9 +3,21 @@ import { useRental } from '../context/RentalContext';
 import { X, ShoppingBag, Calendar, CheckCircle2, Printer, Car, ArrowRight } from 'lucide-react';
 
 export const BookingDrawer = () => {
-  const { isDrawerOpen, setIsDrawerOpen, bookings, formatPrice } = useRental();
+  const { 
+    isDrawerOpen, 
+    setIsDrawerOpen, 
+    bookings, 
+    formatPrice, 
+    user, 
+    setIsAuthModalOpen 
+  } = useRental();
 
   if (!isDrawerOpen) return null;
+
+  // Filter bookings belonging to the currently logged-in user
+  const userBookings = user 
+    ? bookings.filter(b => b.email && user.email && b.email.toLowerCase() === user.email.toLowerCase())
+    : [];
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/60 backdrop-blur-md animate-in fade-in">
@@ -19,7 +31,7 @@ export const BookingDrawer = () => {
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-amber-600" />
-              <h2 className="font-syne text-xl font-bold text-slate-900">Active Reservations</h2>
+              <h2 className="font-syne text-xl font-bold text-slate-900">My Reservations</h2>
             </div>
 
             <button 
@@ -32,7 +44,24 @@ export const BookingDrawer = () => {
 
           {/* List of Bookings */}
           <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-            {bookings.length === 0 ? (
+            {!user ? (
+              <div className="py-20 text-center space-y-4">
+                <Car className="w-12 h-12 text-amber-600 mx-auto stroke-[1.5]" />
+                <p className="font-syne text-base text-slate-900 font-bold">Sign In Required</p>
+                <p className="text-slate-600 text-xs font-sans max-w-xs mx-auto">
+                  Please log in to your account to view your active vehicle reservations.
+                </p>
+                <button
+                  onClick={() => {
+                    setIsDrawerOpen(false);
+                    setIsAuthModalOpen(true);
+                  }}
+                  className="px-6 py-2.5 rounded-full bg-amber-600 text-white font-syne font-bold text-xs uppercase cursor-pointer hover:bg-amber-700 transition-colors shadow-sm"
+                >
+                  Sign In / Create Account
+                </button>
+              </div>
+            ) : userBookings.length === 0 ? (
               <div className="py-20 text-center space-y-3">
                 <Car className="w-12 h-12 text-slate-400 mx-auto stroke-[1.5]" />
                 <p className="font-syne text-base text-slate-900 font-bold">No Active Reservations Yet</p>
@@ -41,7 +70,7 @@ export const BookingDrawer = () => {
                 </p>
               </div>
             ) : (
-              bookings.map((booking) => (
+              userBookings.map((booking) => (
                 <div 
                   key={booking.id || booking._id}
                   className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 font-mono text-xs relative group hover:border-amber-500/50 transition-colors"

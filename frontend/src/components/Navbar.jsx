@@ -140,9 +140,9 @@ export const Navbar = () => {
             >
               <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
               <span className="hidden sm:inline">My Bookings</span>
-              {bookings.length > 0 && (
+              {user && bookings.filter(b => b.email && user.email && b.email.toLowerCase() === user.email.toLowerCase()).length > 0 && (
                 <span className="w-5 h-5 rounded-full bg-slate-900 text-amber-400 text-[10px] font-mono flex items-center justify-center font-bold">
-                  {bookings.length}
+                  {bookings.filter(b => b.email && user.email && b.email.toLowerCase() === user.email.toLowerCase()).length}
                 </span>
               )}
             </button>
